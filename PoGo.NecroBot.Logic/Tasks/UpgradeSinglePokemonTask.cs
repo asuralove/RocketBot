@@ -2,7 +2,9 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using PoGo.NecroBot.Logic.Logging;
 using PoGo.NecroBot.Logic.PoGoUtils;
 using PoGo.NecroBot.Logic.State;
 using POGOProtos.Data;
@@ -10,6 +12,7 @@ using PoGo.NecroBot.Logic.Event;
 using POGOProtos.Inventory;
 using POGOProtos.Settings.Master;
 using System;
+using PokemonGo.RocketAPI.Exceptions;
 
 #endregion
 
@@ -55,7 +58,7 @@ namespace PoGo.NecroBot.Logic.Tasks
             using (var block = new BlockableScope(session, Model.BotActions.Upgrade))
             {
                 if (!await block.WaitToRun()) return;
-                await session.Inventory.RefreshCachedInventory();
+                //await session.Inventory.RefreshCachedInventory();
 
                 if (session.Inventory.GetStarDust() <= session.LogicSettings.GetMinStarDustForLevelUp)
                     return;
@@ -87,6 +90,10 @@ namespace PoGo.NecroBot.Logic.Tasks
                         }
                         upgradeTimes++;
 
+                    }
+                    catch (CaptchaException cex)
+                    {
+                        throw cex;
                     }
                     catch (Exception)
                     {

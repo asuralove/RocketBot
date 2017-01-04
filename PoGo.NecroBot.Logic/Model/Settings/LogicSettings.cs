@@ -54,7 +54,7 @@ namespace PoGo.NecroBot.Logic.Model.Settings
         public int GetMinStarDustForLevelUp => _settings.PokemonConfig.GetMinStarDustForLevelUp;
         public bool UseLuckyEggConstantly => _settings.PokemonConfig.UseLuckyEggConstantly;
         public bool UseIncenseConstantly => _settings.PokemonConfig.UseIncenseConstantly;
-        public int UseBerriesMinCp => _settings.PokemonConfig.UseBerriesMinCp;
+        public float UseBerriesMinCp => _settings.PokemonConfig.UseBerriesMinCp;
         public float UseBerriesMinIv => _settings.PokemonConfig.UseBerriesMinIv;
         public double UseBerriesBelowCatchProbability => _settings.PokemonConfig.UseBerriesBelowCatchProbability;
         public string UseBerriesOperator => _settings.PokemonConfig.UseBerriesOperator;
@@ -66,10 +66,16 @@ namespace PoGo.NecroBot.Logic.Model.Settings
         public double WalkingSpeedVariant => _settings.LocationConfig.WalkingSpeedVariant;
         public bool ShowVariantWalking => _settings.LocationConfig.ShowVariantWalking;
         public bool FastSoftBanBypass => _settings.SoftBanConfig.FastSoftBanBypass;
+        public int ByPassSpinCount  =>  _settings.SoftBanConfig.ByPassSpinCount;
         public bool EvolveAllPokemonWithEnoughCandy => _settings.PokemonConfig.EvolveAllPokemonWithEnoughCandy;
         public bool KeepPokemonsThatCanEvolve => _settings.PokemonConfig.KeepPokemonsThatCanEvolve;
         public bool TransferDuplicatePokemon => _settings.PokemonConfig.TransferDuplicatePokemon;
         public bool TransferDuplicatePokemonOnCapture => _settings.PokemonConfig.TransferDuplicatePokemonOnCapture;
+        public bool UseBulkTransferPokemon => _settings.PokemonConfig.UseBulkTransferPokemon;
+
+        public int BulkTransferSize => _settings.PokemonConfig.BulkTransferSize;
+        public int BulkTransferStogareBuffer => _settings.PokemonConfig.BulkTransferStogareBuffer;
+
         public bool UseEggIncubators => _settings.PokemonConfig.UseEggIncubators;
         public bool UseLimitedEggIncubators => _settings.PokemonConfig.UseLimitedEggIncubators;
         public int UseGreatBallAboveCp => _settings.PokemonConfig.UseGreatBallAboveCp;
@@ -123,7 +129,7 @@ namespace PoGo.NecroBot.Logic.Model.Settings
         public bool VerboseRecycling => _settings.RecycleConfig.VerboseRecycling;
         public double RecycleInventoryAtUsagePercentage => _settings.RecycleConfig.RecycleInventoryAtUsagePercentage;
         public double EvolveKeptPokemonsAtStorageUsagePercentage => _settings.PokemonConfig.EvolveKeptPokemonsAtStorageUsagePercentage;
-        public int EvolveKeptPokemonsOverrideStartIfThisManyReady => _settings.PokemonConfig.EvolveKeptPokemonsOverrideStartIfThisManyReady;
+        public int EvolveKeptPokemonIfBagHasOverThisManyPokemon => _settings.PokemonConfig.EvolveKeptPokemonIfBagHasOverThisManyPokemon;
         public ICollection<KeyValuePair<ItemId, int>> ItemRecycleFilter => _settings.ItemRecycleFilter.Select(itemRecycleFilter => new KeyValuePair<ItemId, int>(itemRecycleFilter.Key, itemRecycleFilter.Value)).ToList();
         public ICollection<PokemonId> PokemonsToEvolve => _settings.PokemonsToEvolve;
         public ICollection<PokemonId> PokemonsToLevelUp => _settings.PokemonsToLevelUp;
@@ -239,7 +245,11 @@ namespace PoGo.NecroBot.Logic.Model.Settings
         public List<AuthConfig> Bots => _settings.Auth.Bots;
         public bool AllowMultipleBot => _settings.Auth.AllowMultipleBot;
         public int MinIVForAutoSnipe => _settings.SnipeConfig.MinIVForAutoSnipe;
+        public bool AutosnipeVerifiedOnly => _settings.SnipeConfig.AutosnipeVerifiedOnly;
         public Dictionary<PokemonId, BotSwitchPokemonFilter> BotSwitchPokemonFilters => _settings.BotSwitchPokemonFilters;
 
+        public NotificationConfig NotificationConfig => _settings.NotificationConfig;
+
+        public CaptchaConfig CaptchaConfig => _settings.CaptchaConfig;
     }
 }

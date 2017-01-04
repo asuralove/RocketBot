@@ -17,6 +17,9 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.Runtime.Caching;
 using PoGo.NecroBot.Logic.Logging;
+using PoGo.NecroBot.Logic.Utils;
+using System.IO;
+using PoGo.NecroBot.Logic.Tasks;
 
 #endregion
 
@@ -37,7 +40,7 @@ namespace PoGo.NecroBot.Logic.State
         IElevationService ElevationService { get; set; }
         List<FortData> Forts { get; set; }
         List<FortData> VisibleForts { get; set; }
-        void ResetSessionToWithNextBot(AuthConfig authConfig = null, double lat = 0, double lng = 0, double att = 0);
+        bool ReInitSessionWithNextBot(AuthConfig authConfig = null, double lat = 0, double lng = 0, double att = 0);
         void AddForts(List<FortData> mapObjects);
         void AddVisibleForts(List<FortData> mapObjects);
         Task<bool> WaitUntilActionAccept(BotActions action, int timeout = 30000);
@@ -92,6 +95,20 @@ namespace PoGo.NecroBot.Logic.State
                     PtcUsername = settings.PtcUsername
                 });
             }
+            if (File.Exists("runtime.log"))
+            {
+                var lines = File.ReadAllLines("runtime.log");
+                foreach (var item in lines)
+                {
+                    var arr = item.Split(';');
+                    var acc = this.accounts.FirstOrDefault(p => p.PtcUsername == arr[0] || p.GoogleUsername == arr[1]);
+                    if (acc != null)
+                    {
+                        acc.RuntimeTotal = Convert.ToDouble(arr[1]);
+                        
+                    }
+                }
+            }
         }
         public List<FortData> Forts { get; set; }
         public List<FortData> VisibleForts { get; set; }
@@ -131,18 +148,19 @@ namespace PoGo.NecroBot.Logic.State
         private List<BotActions> botActions = new List<BotActions>();
         public void Reset(ISettings settings, ILogicSettings logicSettings)
         {
-            Client = new Client(Settings);
+            Client = new Client(settings);
             // ferox wants us to set this manually
             Inventory = new Inventory(Client, logicSettings);
             Navigation = new Navigation(Client, logicSettings);
             Navigation.WalkStrategy.UpdatePositionEvent +=
                 (lat, lng) => this.EventDispatcher.Send(new UpdatePositionEvent { Latitude = lat, Longitude = lng });
+          
         }
         //TODO : Need add BotManager to manage all feature related to multibot, 
-        public void ResetSessionToWithNextBot(AuthConfig bot = null, double lat = 0, double lng = 0, double att = 0)
+        public bool ReInitSessionWithNextBot(AuthConfig bot = null, double lat = 0, double lng = 0, double att = 0)
         {
             this.CatchBlockTime = DateTime.Now; //remove any block
-            
+            MSniperServiceTask.BlockSnipe();
             var currentAccount = this.accounts.FirstOrDefault(x => (x.AuthType == PokemonGo.RocketAPI.Enums.AuthType.Ptc && x.PtcUsername == this.Settings.PtcUsername) ||
                                         (x.AuthType == PokemonGo.RocketAPI.Enums.AuthType.Google && x.GoogleUsername == this.Settings.GoogleUsername));
             if (LoggedTime != DateTime.MinValue)
@@ -151,10 +169,34 @@ namespace PoGo.NecroBot.Logic.State
             }
 
             this.accounts = this.accounts.OrderByDescending(p => p.RuntimeTotal).ToList();
+            var first = this.accounts.First();
+            if(first.RuntimeTotal >= 100000)
+            {
+                first.RuntimeTotal = this.accounts.Min(p => p.RuntimeTotal);
+            }
 
             var nextBot = bot != null ? bot : this.accounts.LastOrDefault(p => p != currentAccount && p.ReleaseBlockTime < DateTime.Now);
             if (nextBot != null)
             {
+                Logger.Write($"Switching to {nextBot.GoogleUsername}{nextBot.PtcUsername}...");
+                string body = "";
+
+                File.Delete("runtime.log");
+                List<string> logs = new List<string>();
+
+                foreach (var item in this.Accounts)
+                {
+                    
+                    int day = (int)item.RuntimeTotal / 1440;
+                    int hour = (int)(item.RuntimeTotal - (day * 1400)) / 60;
+                    int min = (int)(item.RuntimeTotal - (day * 1400) - hour * 60);
+
+                    body = body + $"{item.GoogleUsername}{item.PtcUsername}     {day:00}:{hour:00}:{min:00}:00\r\n";
+                    logs.Add($"{item.GoogleUsername}{item.PtcUsername};{item.RuntimeTotal}");
+                }
+                File.AppendAllLines("runtime.log", logs);
+                PushNotificationClient.SendNotification(this,$"Account changed to {nextBot.GoogleUsername}{nextBot.PtcUsername}",body);
+
                 this.Settings.AuthType = nextBot.AuthType;
                 this.Settings.GooglePassword = nextBot.GooglePassword;
                 this.Settings.GoogleUsername = nextBot.GoogleUsername;
@@ -165,7 +207,7 @@ namespace PoGo.NecroBot.Logic.State
                 this.Settings.DefaultLongitude = lng == 0 ? this.Client.CurrentLongitude : lng;
                 this.Stats = new SessionStats(this);
                 this.Reset(this.Settings, this.LogicSettings);
-                CancellationTokenSource.Cancel();
+                //CancellationTokenSource.Cancel();
                 this.CancellationTokenSource = new CancellationTokenSource();
                 
                 this.EventDispatcher.Send(new BotSwitchedEvent() {
@@ -179,6 +221,7 @@ namespace PoGo.NecroBot.Logic.State
                     }
                 }
             }
+            return nextBot != null;
 
         }
         public void AddForts(List<FortData> data)

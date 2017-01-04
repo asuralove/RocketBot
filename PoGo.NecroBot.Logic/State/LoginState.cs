@@ -25,6 +25,7 @@ namespace PoGo.NecroBot.Logic.State
         {
             this.pokemonToCatch = pokemonToCatch;
         }
+
         public async Task<IState> Execute(ISession session, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -40,7 +41,6 @@ namespace PoGo.NecroBot.Logic.State
                 if (session.Settings.AuthType == AuthType.Google || session.Settings.AuthType == AuthType.Ptc)
                 {
                     await session.Client.Login.DoLogin();
-                    await LogLoginHistory(session, cancellationToken); 
                 }
                 else
                 {
@@ -54,17 +54,24 @@ namespace PoGo.NecroBot.Logic.State
             {
                 throw ae.Flatten().InnerException;
             }
-            catch (LoginFailedException)
+            catch (APIBadRequestException ex)
             {
                 session.EventDispatcher.Send(new ErrorEvent
                 {
                     Message = session.Translation.GetTranslation(TranslationString.LoginInvalid)
                 });
+                
                 await Task.Delay(2000, cancellationToken);
-                Environment.Exit(0);
+                throw new LoginFailedException();
             }
             catch (Exception ex) when (ex is PtcOfflineException || ex is AccessTokenExpiredException)
             {
+
+
+
+
+
+
                 session.EventDispatcher.Send(new ErrorEvent
                 {
                     Message = session.Translation.GetTranslation(TranslationString.PtcOffline)
@@ -74,14 +81,15 @@ namespace PoGo.NecroBot.Logic.State
                     Message = session.Translation.GetTranslation(TranslationString.TryingAgainIn, 20)
                 });
             }
-            catch (AccountNotVerifiedException)
+            catch (AccountNotVerifiedException ex)
             {
+                
                 session.EventDispatcher.Send(new ErrorEvent
                 {
                     Message = session.Translation.GetTranslation(TranslationString.AccountNotVerified)
                 });
                 await Task.Delay(2000, cancellationToken);
-                Environment.Exit(0);
+                throw ex;
             }
             catch (GoogleException e)
             {
@@ -137,6 +145,10 @@ namespace PoGo.NecroBot.Logic.State
                 Console.ReadKey();
                 System.Environment.Exit(1);
             }
+            catch(CaptchaException captcha)
+            {
+                throw captcha;
+            }
             catch (Exception e)
             {
                 Logger.Write(e.ToString());
@@ -165,35 +177,25 @@ namespace PoGo.NecroBot.Logic.State
                     System.Environment.Exit(1);
                 }
             }
+            catch(CaptchaException ex)
+            {
+                throw ex;
+            }
             catch(ActiveSwitchByRuleException)
             {
                 //sometime the switch active happen same time with login by token expired. we need ignore it 
             }
-
+            catch (APIBadRequestException ex)
+            {
+                throw new LoginFailedException();
+            }
+            
             session.LoggedTime = DateTime.Now;
             if(this.pokemonToCatch != PokemonId.Missingno)
             {
                 return new BotSwitcherState(this.pokemonToCatch);
             }
             return new LoadSaveState();
-        }
-
-        private async Task LogLoginHistory(ISession session, CancellationToken cancellationToken)
-        {
-            string logFile = $"config\\login{DateTime.Now:dd-MM-yyyy}.log";
-            //if(!File.Exists(logFile) )
-            //{
-            //    File.CreateText(logFile);
-            //}
-
-            await Task.Run(() =>
-            {
-                try {
-                    string username = session.Settings.AuthType == AuthType.Ptc ? session.Settings.PtcUsername : session.Settings.GoogleUsername;
-                    File.AppendAllText(logFile, $"{DateTime.Now:dd-MM-yyyy hh:mm:ss}\t\t{username}\r\n");
-                }
-                catch(Exception) { }
-            });
         }
 
         private static async Task CheckLogin(ISession session, CancellationToken cancellationToken)
@@ -232,6 +234,10 @@ namespace PoGo.NecroBot.Logic.State
             catch (System.UriFormatException e)
             {
                 session.EventDispatcher.Send(new ErrorEvent { Message = e.ToString() });
+            }
+            catch(CaptchaException ex)
+            {
+                throw ex;
             }
             catch (Exception ex)
             {

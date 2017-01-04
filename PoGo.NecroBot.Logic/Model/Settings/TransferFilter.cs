@@ -13,11 +13,12 @@ namespace PoGo.NecroBot.Logic.Model.Settings
     }
 
     [JsonObject(Description = "", ItemRequired = Required.DisallowNull)] //Dont set Title
-    public class TransferFilter
+    public class TransferFilter 
     {
         public TransferFilter()
         {
             MovesOperator = "and";
+            KeepMinOperator = Operator.or.ToString();
             Moves = new List<List<PokemonMove>>();
             DeprecatedMoves = new List<PokemonMove>();
             

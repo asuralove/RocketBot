@@ -24,7 +24,7 @@ namespace PoGo.NecroBot.Logic.Tasks
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            await session.Inventory.RefreshCachedInventory();
+            //await session.Inventory.RefreshCachedInventory();
 
             var pokemonToEvolveTask = await session.Inventory.GetPokemonToEvolve(session.LogicSettings.PokemonsToEvolve);
             var pokemonToEvolve = pokemonToEvolveTask.Where(p => p != null).ToList();
@@ -45,7 +45,7 @@ namespace PoGo.NecroBot.Logic.Tasks
 
                     var pokemonNeededInInventory = (maxStorage - totalEggs.Count()) * session.LogicSettings.EvolveKeptPokemonsAtStorageUsagePercentage / 100.0f;
                     var needPokemonToStartEvolve = Math.Round(
-                        Math.Max(0, Math.Min(session.LogicSettings.EvolveKeptPokemonsOverrideStartIfThisManyReady,
+                        Math.Max(0, Math.Min(session.LogicSettings.EvolveKeptPokemonIfBagHasOverThisManyPokemon,
                             Math.Min(pokemonNeededInInventory, session.Profile.PlayerData.MaxPokemonStorage))));
 
                     var deltaCount = needPokemonToStartEvolve - totalPokemon.Count();
@@ -77,7 +77,7 @@ namespace PoGo.NecroBot.Logic.Tasks
                         {
                             await UseLuckyEgg(session);
                         }
-                        await evolve(session, pokemonToEvolve);
+                        await Evolve(session, pokemonToEvolve);
                     }
                 }
                 else if (session.LogicSettings.EvolveAllPokemonWithEnoughCandy || session.LogicSettings.EvolveAllPokemonAboveIv)
@@ -86,14 +86,14 @@ namespace PoGo.NecroBot.Logic.Tasks
                     {
                         await UseLuckyEgg(session);
                     }
-                    await evolve(session, pokemonToEvolve);
+                    await Evolve(session, pokemonToEvolve);
                 }
             }
         }
 
         public static async Task UseLuckyEgg(ISession session)
         {
-            await session.Inventory.RefreshCachedInventory();
+            //await session.Inventory.RefreshCachedInventory();
 
             var inventoryContent = await session.Inventory.GetItems();
 
@@ -109,19 +109,36 @@ namespace PoGo.NecroBot.Logic.Tasks
             DelayingUtils.Delay(session.LogicSettings.DelayBetweenPlayerActions, 0);
         }
 
-        private static async Task evolve(ISession session, List<PokemonData> pokemonToEvolve)
+        private static async Task Evolve(ISession session, List<PokemonData> pokemonToEvolve)
         {
+            var pokemonSettings = await session.Inventory.GetPokemonSettings();
+            var pokemonFamilies = await session.Inventory.GetPokemonFamilies();
+
+            int sequence = 1;
             foreach (var pokemon in pokemonToEvolve)
             {
+                var setting =
+                pokemonSettings.FirstOrDefault(q => pokemon != null && q.PokemonId == pokemon.PokemonId);
+                var family = pokemonFamilies.FirstOrDefault(q => setting != null && q.FamilyId == setting.FamilyId);
+
+                if (family.Candy_ < setting.CandyToEvolve) continue;
                 // no cancellationToken.ThrowIfCancellationRequested here, otherwise the lucky egg would be wasted.
                 var evolveResponse = await session.Client.Inventory.EvolvePokemon(pokemon.Id);
+                if (evolveResponse.Result == POGOProtos.Networking.Responses.EvolvePokemonResponse.Types.Result.Success)
+                {
+                    family.Candy_ += -setting.CandyToEvolve;
+                    await session.Inventory.UpdateCandy(family, -setting.CandyToEvolve);
+                    await session.Inventory.DeletePokemonFromInvById(pokemon.Id);
+                    await session.Inventory.AddPokemonToCache(evolveResponse.EvolvedPokemonData);
+                }
 
                 session.EventDispatcher.Send(new PokemonEvolveEvent
                 {
                     Id = pokemon.PokemonId,
                     Exp = evolveResponse.ExperienceAwarded,
                     UniqueId = pokemon.Id,
-                    Result = evolveResponse.Result
+                    Result = evolveResponse.Result,
+                    Sequence = pokemonToEvolve.Count() ==1?0:sequence++
                 });
 
                 if (!pokemonToEvolve.Last().Equals(pokemon))

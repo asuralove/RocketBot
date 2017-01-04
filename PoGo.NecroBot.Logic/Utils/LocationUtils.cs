@@ -5,6 +5,8 @@ using GeoCoordinatePortable;
 using System.Threading.Tasks;
 using POGOProtos.Networking.Responses;
 using PoGo.NecroBot.Logic.State;
+using PokemonGo.RocketAPI;
+using PoGo.NecroBot.Logic.Service;
 using PoGo.NecroBot.Logic.Service.Elevation;
 
 #endregion
@@ -23,10 +25,17 @@ namespace PoGo.NecroBot.Logic.Utils
             double destLng)
             // from http://stackoverflow.com/questions/6366408/calculating-distance-between-two-latitude-and-longitude-geocoordinates
         {
-            var sourceLocation = new GeoCoordinate(sourceLat, sourceLng);
-            var targetLocation = new GeoCoordinate(destLat, destLng);
+            try {
+                var sourceLocation = new GeoCoordinate(sourceLat, sourceLng);
+                var targetLocation = new GeoCoordinate(destLat, destLng);
+                return sourceLocation.GetDistanceTo(targetLocation);
+            }
+            catch ( ArgumentOutOfRangeException ex)
+            {
+                return double.MaxValue;
+            }
 
-            return sourceLocation.GetDistanceTo(targetLocation);
+            return 0;
         }
 
         public static double CalculateDistanceInMeters(GeoCoordinate sourceLocation, GeoCoordinate destinationLocation)

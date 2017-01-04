@@ -130,6 +130,12 @@ namespace PoGo.NecroBot.Logic.Model.Settings
         [JsonProperty(Required = Required.DisallowNull, DefaultValueHandling = DefaultValueHandling.Ignore)]
         public List<PokemonId> PokemonsToIgnore = CatchConfig.PokemonsToIgnoreDefault();
 
+        [JsonProperty(Required = Required.DisallowNull, DefaultValueHandling = DefaultValueHandling.Ignore)]
+
+        [ExcelConfig(SheetName = "CaptchaConfig", Description = "Captcha config to define the way you prefer to resolve captcha")]
+        public CaptchaConfig CaptchaConfig = new CaptchaConfig();
+
+
         [ExcelConfig(SheetName = "PokemonsTransferFilter", Description = "Setting up pokemon filter rules")]
         [JsonProperty(Required = Required.DisallowNull, DefaultValueHandling = DefaultValueHandling.Ignore)]
         public Dictionary<PokemonId, TransferFilter> PokemonsTransferFilter = TransferFilter.TransferFilterDefault();
@@ -151,6 +157,10 @@ namespace PoGo.NecroBot.Logic.Model.Settings
         [ExcelConfig (Description ="Setting up bot to use multiple account" , SheetName = "MultipleBotConfig")]
         [JsonProperty(Required = Required.DisallowNull, DefaultValueHandling = DefaultValueHandling.Ignore)]
         public MultipleBotConfig MultipleBotConfig = MultipleBotConfig.Default();
+
+        [ExcelConfig(Description = "Setting up notifications setting", SheetName = "NotificationConfig")]
+        [JsonProperty(Required = Required.DisallowNull, DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public NotificationConfig NotificationConfig = new NotificationConfig();
 
         [ExcelConfig(SheetName = "SnipePokemonFilter", Description ="Setup list pokemon for auto snipe")]
         [JsonProperty(Required = Required.DisallowNull, DefaultValueHandling = DefaultValueHandling.Ignore)]
@@ -224,6 +234,7 @@ namespace PoGo.NecroBot.Logic.Model.Settings
             }
         }
 
+
         //private JObject _jsonObject;
         //public JObject JsonObject
         //{
@@ -262,11 +273,28 @@ namespace PoGo.NecroBot.Logic.Model.Settings
         public static GlobalSettings Load(string path, bool validate = false)
         {
             GlobalSettings settings;
-            var profilePath = Path.Combine(Directory.GetCurrentDirectory(), path);
-            var profileConfigPath = Path.Combine(profilePath, "config");
-            var configFile = Path.Combine(profileConfigPath, "config.json");
-            var schemaFile = Path.Combine(profileConfigPath, "config.schema.json");
-            var shouldExit = false;
+
+            var profilePath = "";
+            var profileConfigPath = "";
+            var configFile = "";
+            var schemaFile = "";
+
+
+            if (Path.IsPathRooted(path))
+            {
+                profileConfigPath = Path.GetDirectoryName(path);
+                configFile = path;
+                schemaFile = path.Replace(".json", ".schema.json");
+
+
+            }
+            else {
+                profilePath = Path.Combine(Directory.GetCurrentDirectory(), path);
+                profileConfigPath = Path.Combine(profilePath, "config");
+                configFile = Path.Combine(profileConfigPath, "config.json");
+                schemaFile = Path.Combine(profileConfigPath, "config.schema.json");
+            }
+                var shouldExit = false;
             int schemaVersionBeforeUpgrade = 0;
 
             if (File.Exists(configFile))
