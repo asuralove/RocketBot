@@ -296,9 +296,9 @@ namespace PoGo.NecroBot.Logic.Model.Settings
 
         [ExcelConfig(Description = "Specify the pokemon to keep for mass evolve", Position = 47)]
         [DefaultValue(120)]
-        [Range(0, 350)]
+        [Range(0, 999)]
         [JsonProperty(Required = Required.DisallowNull, DefaultValueHandling = DefaultValueHandling.Populate, Order = 47)]
-        public int EvolveKeptPokemonsOverrideStartIfThisManyReady = 120;
+        public int EvolveKeptPokemonIfBagHasOverThisManyPokemon = 120;
         
         /*Keep*/
         [ExcelConfig(Description = "Allow bot keep low candy pokemon for evolve", Position = 47)]
@@ -380,5 +380,21 @@ namespace PoGo.NecroBot.Logic.Model.Settings
         [Range(0, 999)]
         [JsonProperty(Required = Required.DisallowNull, DefaultValueHandling = DefaultValueHandling.Populate, Order = 60)]
         public int PokeballToKeepForSnipe{ get; set; }
+
+        [DefaultValue(true)]
+        [ExcelConfig(Description = "Transfer multiple pokemon at 1 time - that will increase bot speed and reduce api call", Position = 61)]
+        [JsonProperty(Required = Required.DisallowNull, DefaultValueHandling = DefaultValueHandling.Populate, Order = 61)]
+        public bool UseBulkTransferPokemon { get;  set; }
+
+        [DefaultValue(10)]
+        [ExcelConfig(Description = "Bot will transfer pokemons only when MaxStogare < pokemon + buffer", Position = 62)]
+        [JsonProperty(Required = Required.DisallowNull, DefaultValueHandling = DefaultValueHandling.Populate, Order = 62)]
+        public int BulkTransferStogareBuffer { get;  set; }
+
+        [DefaultValue(100)]
+        [ExcelConfig(Description = "Maximun number of pokemon in 1 transfer", Position = 63)]
+        [JsonProperty(Required = Required.DisallowNull, DefaultValueHandling = DefaultValueHandling.Populate, Order = 63)]
+        [Range(1,100)]
+        public int BulkTransferSize { get; internal set; }
     }
 }
