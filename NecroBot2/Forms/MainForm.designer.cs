@@ -38,8 +38,7 @@ namespace NecroBot2.Forms
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.startStopBotToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.settingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.showAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.showAllToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.gMapControl1 = new GMap.NET.WindowsForms.GMapControl();
             this.olvPokemonList = new BrightIdeasSoftware.ObjectListView();
             this.pkmnName = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
@@ -122,7 +121,8 @@ namespace NecroBot2.Forms
             this.menuStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.startStopBotToolStripMenuItem,
-            this.settingToolStripMenuItem});
+            this.settingToolStripMenuItem,
+            this.aboutToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Size = new System.Drawing.Size(1254, 25);
@@ -133,7 +133,7 @@ namespace NecroBot2.Forms
             // 
             this.startStopBotToolStripMenuItem.Name = "startStopBotToolStripMenuItem";
             this.startStopBotToolStripMenuItem.Size = new System.Drawing.Size(85, 21);
-            this.startStopBotToolStripMenuItem.Text = "▶ Start Bot";
+            this.startStopBotToolStripMenuItem.Text = "▶ Start NecroBot2";
             this.startStopBotToolStripMenuItem.Click += new System.EventHandler(this.startStopBotToolStripMenuItem_Click);
             // 
             // settingToolStripMenuItem
@@ -143,15 +143,12 @@ namespace NecroBot2.Forms
             this.settingToolStripMenuItem.Text = "Settings";
             this.settingToolStripMenuItem.Click += new System.EventHandler(this.todoToolStripMenuItem_Click);
             // 
-            // showAllToolStripMenuItem
+            // aboutToolStripMenuItem
             // 
-            this.showAllToolStripMenuItem.Name = "showAllToolStripMenuItem";
-            this.showAllToolStripMenuItem.Size = new System.Drawing.Size(32, 19);
-            // 
-            // showAllToolStripMenuItem1
-            // 
-            this.showAllToolStripMenuItem1.Name = "showAllToolStripMenuItem1";
-            this.showAllToolStripMenuItem1.Size = new System.Drawing.Size(32, 19);
+            this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
+            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(66, 21);
+            this.aboutToolStripMenuItem.Text = "About";
+            this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
             // 
             // gMapControl1
             // 
@@ -166,8 +163,9 @@ namespace NecroBot2.Forms
             this.gMapControl1.LevelsKeepInMemmory = 5;
             this.gMapControl1.Location = new System.Drawing.Point(3, 3);
             this.gMapControl1.MarkersEnabled = true;
-            this.gMapControl1.MaxZoom = 2;
+            this.gMapControl1.MaxZoom = 18;
             this.gMapControl1.MinZoom = 2;
+            this.gMapControl1.MouseWheelZoomEnabled = true;
             this.gMapControl1.MouseWheelZoomType = GMap.NET.MouseWheelZoomType.MousePositionAndCenter;
             this.gMapControl1.Name = "gMapControl1";
             this.gMapControl1.NegativeMode = false;
@@ -183,7 +181,7 @@ namespace NecroBot2.Forms
             // 
             // olvPokemonList
             // 
-            this.olvPokemonList.AllColumns.Add(this.pkmnName);
+			this.olvPokemonList.AllColumns.Add(this.pkmnName);
             this.olvPokemonList.AllColumns.Add(this.pkmnCP);
             this.olvPokemonList.AllColumns.Add(this.pkmnAtkIV);
             this.olvPokemonList.AllColumns.Add(this.pkmnDefIV);
@@ -420,8 +418,8 @@ namespace NecroBot2.Forms
             this.togglePrecalRoute.AutoSize = true;
             this.togglePrecalRoute.BackColor = System.Drawing.Color.Transparent;
             this.togglePrecalRoute.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.togglePrecalRoute.Checked = true;
-            this.togglePrecalRoute.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.togglePrecalRoute.Checked = false;
+            this.togglePrecalRoute.CheckState = System.Windows.Forms.CheckState.Unchecked;
             this.togglePrecalRoute.Enabled = false;
             this.togglePrecalRoute.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.togglePrecalRoute.Location = new System.Drawing.Point(420, 53);
@@ -448,6 +446,8 @@ namespace NecroBot2.Forms
             this.followTrainerCheckBox.UseVisualStyleBackColor = false;
             this.followTrainerCheckBox.Visible = false;
             this.followTrainerCheckBox.CheckedChanged += new System.EventHandler(this.followTrainerCheckBox_CheckedChanged);
+            this.followTrainerCheckBox.Checked = true;
+            this.followTrainerCheckBox.CheckState = System.Windows.Forms.CheckState.Indeterminate;
             // 
             // showMoreCheckBox
             // 
@@ -553,8 +553,7 @@ namespace NecroBot2.Forms
         private System.Windows.Forms.ToolStripMenuItem settingToolStripMenuItem;
         private System.Windows.Forms.ToolStripStatusLabel statusLabel;
         private System.Windows.Forms.ToolStripMenuItem startStopBotToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem showAllToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem showAllToolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
         private GMap.NET.WindowsForms.GMapControl gMapControl1;
         private BrightIdeasSoftware.ObjectListView olvPokemonList;
         private BrightIdeasSoftware.OLVColumn pkmnName;

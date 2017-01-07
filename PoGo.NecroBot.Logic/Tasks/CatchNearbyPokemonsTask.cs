@@ -14,6 +14,8 @@ using POGOProtos.Networking.Responses;
 using POGOProtos.Enums;
 using System.Collections;
 using System;
+using PoGo.NecroBot.Logic.Exceptions;
+using System.Collections.Generic;
 
 #endregion
 
@@ -21,16 +23,33 @@ namespace PoGo.NecroBot.Logic.Tasks
 {
     public static class CatchNearbyPokemonsTask
     {
+        public delegate void PokemonsEncounterDelegate(List<MapPokemon> pokemons);
+
         public static async Task Execute(ISession session, CancellationToken cancellationToken, PokemonId priority = PokemonId.Missingno, bool sessionAllowTransfer = true)
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (!session.LogicSettings.CatchPokemon) return;
+
+            if (session.Stats.CatchThresholdExceeds(session))
+            {
+                if (session.LogicSettings.AllowMultipleBot && session.LogicSettings.MultipleBotConfig.SwitchOnCatchLimit)
+                {
+                    throw new Exceptions.ActiveSwitchByRuleException() { MatchedRule = SwitchRules.CatchLimitReached, ReachedValue = session.LogicSettings.CatchPokemonLimit };
+                }
+
+                return;
+            }
+
 
             Logger.Write(session.Translation.GetTranslation(TranslationString.LookingForPokemon), LogLevel.Debug);
 
             var nearbyPokemons = await GetNearbyPokemons(session);
             var priorityPokemon = nearbyPokemons.Where(p => p.PokemonId == priority).FirstOrDefault();
             var pokemons= nearbyPokemons.Where(p => p.PokemonId != priority).ToList();
+
+            //add pokemons to map
+            OnPokemonEncounterEvent(pokemons.ToList());
+
             EncounterResponse encounter = null;
             //if that is snipe pokemon and inventories if full, execute transfer to get more room for pokemon
             if (priorityPokemon != null)
@@ -136,6 +155,7 @@ namespace PoGo.NecroBot.Logic.Tasks
 
         public static async Task<IOrderedEnumerable<MapPokemon>> GetNearbyPokemons(ISession session)
         {
+            
             var mapObjects = await session.Client.Map.GetMapObjects();
             session.AddForts(mapObjects.Item1.MapCells.SelectMany(p => p.Forts).ToList());
             var pokemons = mapObjects.Item1.MapCells.SelectMany(i => i.CatchablePokemons)
@@ -146,6 +166,13 @@ namespace PoGo.NecroBot.Logic.Tasks
                             i.Latitude, i.Longitude));
 
             return pokemons;
+        }
+
+        public static event PokemonsEncounterDelegate PokemonEncounterEvent;
+
+        private static void OnPokemonEncounterEvent(List<MapPokemon> pokemons)
+        {
+            PokemonEncounterEvent?.Invoke(pokemons);
         }
     }
 }

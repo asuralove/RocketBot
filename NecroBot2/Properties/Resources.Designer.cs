@@ -893,6 +893,16 @@ namespace NecroBot2.Properties {
         /// <summary>
         ///   Recherche une ressource localisée de type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap Pokemon_152 {
+            get {
+                object obj = ResourceManager.GetObject("Pokemon_152", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une ressource localisée de type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Pokemon_16 {
             get {
                 object obj = ResourceManager.GetObject("Pokemon_16", resourceCulture);
@@ -1866,6 +1876,26 @@ namespace NecroBot2.Properties {
         internal static System.Drawing.Bitmap Trainer_Right {
             get {
                 object obj = ResourceManager.GetObject("Trainer_Right", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+		
+		        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap necro_logo {
+            get {
+                object obj = ResourceManager.GetObject("necro_logo", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap PayPalDonateNow {
+            get {
+                object obj = ResourceManager.GetObject("PayPalDonateNow", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

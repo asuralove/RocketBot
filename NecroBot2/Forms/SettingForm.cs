@@ -75,7 +75,7 @@ namespace NecroBot2.Forms
 
             #region Login Type and info
 
-            authTypeCb.Text = _setting.Auth.AuthConfig.ToString();
+            authTypeCb.Text = _setting.Auth.AuthConfig.AuthType.ToString();
             UserLoginBox.Text = _setting.Auth.AuthConfig.AuthType == AuthType.Google
                 ? _setting.Auth.AuthConfig.GoogleUsername
                 : _setting.Auth.AuthConfig.PtcUsername;
@@ -84,6 +84,7 @@ namespace NecroBot2.Forms
                 : _setting.Auth.AuthConfig.PtcPassword;
 
             //google api
+            if (_setting.GoogleWalkConfig.GoogleAPIKey != null)
             GoogleApiBox.Text = _setting.GoogleWalkConfig.GoogleAPIKey;
 
             //proxy
@@ -264,20 +265,16 @@ namespace NecroBot2.Forms
 
             cbDisableHumanWalking.Checked = _setting.LocationConfig.DisableHumanWalking;
             cbUseWalkingSpeedVariant.Checked = _setting.LocationConfig.UseWalkingSpeedVariant;
-            tbWalkingSpeedVariantInKilometerPerHour.Text =
-                _setting.LocationConfig.WalkingSpeedVariant.ToString(CultureInfo.InvariantCulture);
+            tbWalkingSpeedVariantInKilometerPerHour.Text = _setting.LocationConfig.WalkingSpeedVariant.ToString(CultureInfo.InvariantCulture);
             cbShowWalkingSpeed.Checked = _setting.LocationConfig.ShowVariantWalking;
             tbMaxSpawnLocationOffset.Text = _setting.LocationConfig.MaxSpawnLocationOffset.ToString();
             tbMaxTravelDistanceInMeters.Text = _setting.LocationConfig.MaxTravelDistanceInMeters.ToString();
-
             tbDelayBetweenPlayerActions.Text = _setting.PlayerConfig.DelayBetweenPlayerActions.ToString();
             tbDelayBetweenPokemonCatch.Text = _setting.PokemonConfig.DelayBetweenPokemonCatch.ToString();
             //TODO:
             //tbDelayBetweenRecycle.Text = _setting.DelayBetweenRecycle.ToString();
-
             cbRandomizeRecycle.Checked = _setting.RecycleConfig.RandomizeRecycle;
             tbRandomRecycleValue.Text = _setting.RecycleConfig.RandomRecycleValue.ToString();
-
             cbEnableHumanizedThrows.Checked = _setting.CustomCatchConfig.EnableHumanizedThrows;
             tbNiceThrowChance.Text = _setting.CustomCatchConfig.NiceThrowChance.ToString();
             tbGreatThrowChance.Text = _setting.CustomCatchConfig.GreatThrowChance.ToString();
@@ -452,59 +449,60 @@ namespace NecroBot2.Forms
 
         private void saveBtn_Click(object sender, EventArgs e)
         {
-            if (UserLoginBox.Text.Length == 0 || UserPasswordBox.Text.Length == 0 || GoogleApiBox.Text.Length == 0)
+            if (UserLoginBox.Text.Length == 0 || UserPasswordBox.Text.Length == 0)
             {
                 MessageBox.Show(
                     @"You haven't complete entering your basic information yet." + Environment.NewLine +
-                    @"Either Username, Password or Google API key is empty. Please complete them before saving.",
+                    @"Either Username, Password is empty. Please complete them before saving.",
                     @"Incomplete information", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             else
             {
                 #region Auth Settings
 
+                var lastPosFile = Path.Combine(_setting.ProfileConfigPath, "LastPos.ini");
+                if (File.Exists(lastPosFile))
+                {
+                    File.Delete(lastPosFile);
+                }
                 _setting.Auth.AuthConfig.AuthType = authTypeCb.Text == @"Google" ? AuthType.Google : AuthType.Ptc;
                 if (_setting.Auth.AuthConfig.AuthType == AuthType.Google)
                 {
                     _setting.Auth.AuthConfig.GoogleUsername = UserLoginBox.Text;
                     _setting.Auth.AuthConfig.GooglePassword = UserPasswordBox.Text;
-                    _setting.Auth.AuthConfig.PtcUsername = "";
-                    _setting.Auth.AuthConfig.PtcPassword = "";
+                    _setting.Auth.AuthConfig.PtcUsername = null;
+                    _setting.Auth.AuthConfig.PtcPassword = null;
                 }
                 else
                 {
-                    _setting.Auth.AuthConfig.GoogleUsername = "";
-                    _setting.Auth.AuthConfig.GooglePassword = "";
+                    _setting.Auth.AuthConfig.GoogleUsername = null;
+                    _setting.Auth.AuthConfig.GooglePassword = null;
                     _setting.Auth.AuthConfig.PtcUsername = UserLoginBox.Text;
                     _setting.Auth.AuthConfig.PtcPassword = UserPasswordBox.Text;
                 }
-
-                _setting.GoogleWalkConfig.GoogleAPIKey = GoogleApiBox.Text;
-
-                _setting.Auth.ProxyConfig.UseProxy = useProxyCb.Checked;
-                _setting.Auth.ProxyConfig.UseProxyHost = proxyHostTb.Text;
-                _setting.Auth.ProxyConfig.UseProxyPort = proxyPortTb.Text;
-                _setting.Auth.ProxyConfig.UseProxyAuthentication = useProxyAuthCb.Checked;
-                _setting.Auth.ProxyConfig.UseProxyUsername = proxyUserTb.Text;
-                _setting.Auth.ProxyConfig.UseProxyPassword = proxyPwTb.Text;
-
+                _setting.GoogleWalkConfig.GoogleAPIKey = GoogleApiBox.Text == "" ? null : GoogleApiBox.Text;
+                _setting.Auth.ProxyConfig.UseProxy = useProxyCb.Checked == true ? true : false;
+                _setting.Auth.ProxyConfig.UseProxyHost = proxyHostTb.Text == "" ? null : proxyHostTb.Text;
+                _setting.Auth.ProxyConfig.UseProxyPort = proxyPortTb.Text == "" ? null : proxyPortTb.Text;
+                _setting.Auth.ProxyConfig.UseProxyAuthentication = useProxyAuthCb.Checked == true ? true : false;
+                _setting.Auth.ProxyConfig.UseProxyUsername = proxyUserTb.Text == "" ? null : proxyUserTb.Text;
+                _setting.Auth.ProxyConfig.UseProxyPassword = proxyPwTb.Text == "" ? null : proxyPwTb.Text;
                 _setting.Auth.DeviceConfig.DevicePackageName = "custom";
-                _setting.Auth.DeviceConfig.DeviceId = DeviceIdTb.Text;
-                _setting.Auth.DeviceConfig.AndroidBoardName = AndroidBoardNameTb.Text;
-                _setting.Auth.DeviceConfig.AndroidBootloader = AndroidBootloaderTb.Text;
-                _setting.Auth.DeviceConfig.DeviceBrand = DeviceBrandTb.Text;
-                _setting.Auth.DeviceConfig.DeviceModel = DeviceModelTb.Text;
-                _setting.Auth.DeviceConfig.DeviceModelIdentifier = DeviceModelIdentifierTb.Text;
-                _setting.Auth.DeviceConfig.DeviceModelBoot = DeviceModelBootTb.Text;
-                _setting.Auth.DeviceConfig.HardwareManufacturer = HardwareManufacturerTb.Text;
-                _setting.Auth.DeviceConfig.HardwareModel = HardwareModelTb.Text;
-                _setting.Auth.DeviceConfig.FirmwareBrand = FirmwareBrandTb.Text;
-                _setting.Auth.DeviceConfig.FirmwareTags = FirmwareTagsTb.Text;
-                _setting.Auth.DeviceConfig.FirmwareType = FirmwareTypeTb.Text;
-                _setting.Auth.DeviceConfig.FirmwareFingerprint = FirmwareFingerprintTb.Text;
-
+                _setting.Auth.DeviceConfig.DeviceId = DeviceIdTb.Text == "" ? null : DeviceIdTb.Text;
+                _setting.Auth.DeviceConfig.AndroidBoardName = AndroidBoardNameTb.Text == "" ? null : AndroidBoardNameTb.Text;
+                _setting.Auth.DeviceConfig.AndroidBootloader = AndroidBootloaderTb.Text == "" ? null : AndroidBootloaderTb.Text;
+                _setting.Auth.DeviceConfig.DeviceBrand = DeviceBrandTb.Text == "" ? null : DeviceBrandTb.Text;
+                _setting.Auth.DeviceConfig.DeviceModel = DeviceModelTb.Text == "" ? null : DeviceModelTb.Text;
+                _setting.Auth.DeviceConfig.DeviceModelIdentifier = DeviceModelIdentifierTb.Text == "" ? null : DeviceModelIdentifierTb.Text;
+                _setting.Auth.DeviceConfig.DeviceModelBoot = DeviceModelBootTb.Text == "" ? null : DeviceModelBootTb.Text;
+                _setting.Auth.DeviceConfig.HardwareManufacturer = HardwareManufacturerTb.Text == "" ? null : HardwareManufacturerTb.Text;
+                _setting.Auth.DeviceConfig.HardwareModel = HardwareModelTb.Text == "" ? null : HardwareModelTb.Text;
+                _setting.Auth.DeviceConfig.FirmwareBrand = FirmwareBrandTb.Text == "" ? null : FirmwareBrandTb.Text;
+                _setting.Auth.DeviceConfig.FirmwareTags = FirmwareTagsTb.Text == "" ? null : FirmwareTagsTb.Text;
+                _setting.Auth.DeviceConfig.FirmwareType = FirmwareTypeTb.Text == "" ? null: FirmwareTypeTb.Text;
+                _setting.Auth.DeviceConfig.FirmwareFingerprint = FirmwareFingerprintTb.Text == "" ? null : FirmwareFingerprintTb.Text;
                 _setting.Auth.Save(AuthFilePath);
-
+                
                 #endregion
 
                 #region NecroBot2.Form Settings
@@ -792,19 +790,27 @@ namespace NecroBot2.Forms
 
         private void enableAdvSettingCb_Click(object sender, EventArgs e)
         {
-//            proxyGb.Visible = _setting.EnableAdvancedSettings = enableAdvSettingCb.Checked;
+            //proxyGb.Visible = _setting.EnableAdvancedSettings = enableAdvSettingCb.Checked;
             if (enableAdvSettingCb.Checked)
             {
                 _tabAdvSettingTab.Enabled = true;
                 tabControl.TabPages.Add(_tabAdvSettingTab);
+                proxyGb.Visible = true;
+                
             }
             else
             {
                 _tabAdvSettingTab.Enabled = false;
                 tabControl.TabPages.Remove(_tabAdvSettingTab);
+                proxyGb.Visible = false;
             }
         }
 
         #endregion
+
+        private void DeviceModelTb_TextChanged(object sender, EventArgs e)
+        {
+
+        }
     }
 }
